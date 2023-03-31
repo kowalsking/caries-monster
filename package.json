@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/kowalsking/caries-monster/issues"
   },
-  "homepage": "https://github.com/kowalsking/caries-monster#readme"
+  "homepage": "https://github.com/kowalsking/caries-monster#readme",
+  "dependencies": {
+    "pixi.js": "^7.2.3"
+  }
 }
