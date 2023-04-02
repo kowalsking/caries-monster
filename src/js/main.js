@@ -111,7 +111,6 @@ class Game {
   }
 
   restartGame() {
-    const b = this.bullets[0]
     this.bullets.forEach(b => b.destroy())
     this.enemies.forEach(e => e.destroy())
     this.particles.forEach(p => p.destroy())
@@ -123,7 +122,6 @@ class Game {
     document.querySelector('.score').innerHTML = this.score
 
     this.startGame()
-    console.log('bbb', b)
   }
 
   endGame() {
@@ -184,8 +182,7 @@ class Game {
       y: Math.sin(angle),
     }
 
-    const color = 'green'
-    const c = new Caries(x, y, size, color, velocity)
+    const c = new Caries(x, y, size, velocity)
     this.enemies.push(c)
     this.world.addChild(c)
   }

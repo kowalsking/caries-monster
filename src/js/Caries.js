@@ -12,14 +12,13 @@ const giveRandomTexture = () =>
   Texture.from(variants[Math.floor(Math.random() * variants.length)])
 
 export default class Caries extends Sprite {
-  constructor(x, y, size, color, velocity) {
+  constructor(x, y, size, velocity) {
     super(giveRandomTexture())
     this.x = x
     this.y = y
     this.size = size
     this.width = size
     this.height = size
-    this.color = color
     this.velocity = velocity
     this.anchor.set(0.5)
     this.alive = true
