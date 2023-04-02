@@ -30,6 +30,8 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "gsap": "^3.11.5"
+    "gsap": "^3.11.5",
+    "howler": "^2.2.3",
+    "randomcolor": "^0.6.2"
   }
 }

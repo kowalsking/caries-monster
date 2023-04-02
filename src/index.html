@@ -1,19 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Caries Monsters</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-  </style>
-</head>
-<body>
-</body>
+    <style>
+      canvas {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fixed text-white text-sm ml-2 mt-1 select-none scoreDiv">
+      <span>Score: </span><span class="score">0</span>
+    </div>
+
+    <div class="fixed inset-0 flex items-center justify-center rounded-full opacity-0 restartGameModal">
+      <div class="bg-white max-w-md w-full p-6 text-center">
+        <h1 class="text-4xl font-bold leading-none endGameScore">0</h1>
+        <p class="text-gray-700 mb-3">Шкода, але цей зубчик не вдалося врятувати...</p>
+        <div>
+          <button class="bg-blue-500 text-white w-full py-3 rounded-full restartGameButton">Спробувати ще!</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fixed inset-0 flex items-center justify-center rounded-full welcomeGameModal">
+      <div class="bg-white max-w-md w-full p-6 text-center">
+        <h1 class="text-4xl font-bold leading-none text-emerald-300">Caries Monsters</h1>
+        <p class="text-gray-700 mb-3">Злі бактерії хочуть нашкодити твоєму зубу, щоб лікар видалив його! Не дай їм цього зробити!</p>
+        <div>
+          <button class="bg-blue-500 text-white w-full py-3 rounded-full welcomeGameButton">Почати!</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameRoot"></div>
+  </body>
 </html>

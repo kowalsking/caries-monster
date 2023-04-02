@@ -1,17 +1,12 @@
-import {
-  Application,
-  Texture,
-  Sprite,
-  loader,
-  Container,
-  Graphics,
-} from 'pixi.js'
+import { Application, Sprite } from 'pixi.js'
 import Tooth from './Tooth'
 import Toothpaste from './Toothpaste'
 import Caries from './Caries'
 import Particle from './Particle'
 import bgTexture from '../assets/bg.jpg'
-
+import randomColor from 'randomcolor'
+import gsap from 'gsap'
+import Sound from './Sound.js'
 class Game {
   constructor() {
     this.width = innerWidth
@@ -21,6 +16,18 @@ class Game {
       y: this.height / 2,
     }
 
+    this.isFirstTime = true
+    this.canClick = false
+
+    this.restartGameModal = document.querySelector('.restartGameModal')
+    this.restartGameButton = document.querySelector('.restartGameButton')
+
+    this.welcomeGameModal = document.querySelector('.welcomeGameModal')
+    this.welcomeGameButton = document.querySelector('.welcomeGameButton')
+
+    this.endGameScore = document.querySelector('.endGameScore')
+
+    this.score = 0
     this.targetFps = 60
     this.targetFrameTime = 1000 / this.targetFps
     this.lastUpdateTime = performance.now()
@@ -30,12 +37,12 @@ class Game {
     this.enemies = []
     this.particles = []
 
+    this.sound = new Sound()
+
     this.create()
     this.createBackground()
     this.createPlayer()
     this.addHandlers()
-
-    this.loop()
   }
 
   loop() {
@@ -59,19 +66,85 @@ class Game {
   create() {
     this.app = new Application({
       autoResize: true,
-      backgroundColor: 0x1099bb,
+      backgroundColor: 0x000000,
       width: this.width,
       height: this.height,
     })
 
-    document.body.append(this.app.view)
+    document.querySelector('#gameRoot').append(this.app.view)
     this.app.renderer.resize(this.width, this.height)
 
     this.world = this.app.stage
     this.world.name = 'world'
+    this.world.alpha = 0
+
+    this.sound.start.play()
+    this.restartGameModal.style.display = 'none'
 
     // extension for chrome
     globalThis.__PIXI_APP__ = this.app
+  }
+
+  startGame() {
+    const modal = this.isFirstTime ? this.welcomeGameModal : this.restartGameModal
+    const button = this.isFirstTime ? this.welcomeGameButton : this.restartGameButton
+    gsap.to(modal, {
+      opacity: 0,
+      duration: 1,
+      onComplete: () => {
+        modal.style.display = 'none'
+
+        gsap.to(this.world, {
+          alpha: 1,
+          duration: 1,
+          onComplete: () => {
+            this.loop()
+            this.canClick = true
+            this.isFirstTime ? this.sound.start.stop() : this.sound.end.stop()
+            this.sound.game.play()
+
+            this.isFirstTime = false
+          },
+        })
+      },
+    })
+  }
+
+  restartGame() {
+    const b = this.bullets[0]
+    this.bullets.forEach(b => b.destroy())
+    this.enemies.forEach(e => e.destroy())
+    this.particles.forEach(p => p.destroy())
+    this.world.removeChild(...this.bullets, ...this.enemies, ...this.particles)
+    this.bullets = []
+    this.enemies = []
+    this.particles = []
+    this.score = 0
+    document.querySelector('.score').innerHTML = this.score
+
+    this.startGame()
+    console.log('bbb', b)
+  }
+
+  endGame() {
+    this.canClick = false
+    this.sound.explosion.play()
+    cancelAnimationFrame(this.rafId)
+
+    gsap.to(this.world, {
+      alpha: 0,
+      duration: 1,
+      onComplete: () => {
+        this.endGameScore.innerHTML = this.score
+        this.restartGameModal.style.display = 'flex'
+        this.sound.game.stop()
+        this.sound.end.play()
+        gsap.to(this.restartGameModal, {
+          opacity: 1,
+          duration: 1
+        })
+      },
+    })
   }
 
   createBackground() {
@@ -130,11 +203,23 @@ class Game {
     })
     this.bullets.push(t)
     this.world.addChild(t)
+    this.sound.shoot.play()
   }
 
   addHandlers() {
     this.bg.on('tap', (ev) => {
+      if (!this.canClick) return
       this.createBullet(ev.x, ev.y)
+    })
+
+    this.restartGameButton.addEventListener('click', () => {
+      this.restartGame()
+      this.sound.click.play()
+    })
+
+    this.welcomeGameButton.addEventListener('click', () => {
+      this.startGame()
+      this.sound.click.play()
     })
   }
 
@@ -150,6 +235,7 @@ class Game {
       ) {
         this.bullets.splice(index, 1)
         this.world.removeChild(bullet)
+        bullet.destroy()
       }
     })
 
@@ -159,31 +245,40 @@ class Game {
       const dist = Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y)
 
       if (dist - this.player.size / 2 - enemy.size / 2 < 1) {
-        // end game
-        console.log('end game', dist)
-        cancelAnimationFrame(this.rafId)
+        this.endGame()
       }
 
       this.bullets.forEach((bullet, bIndex) => {
+        if (enemy.destroyed) return
         const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y)
         if (dist - bullet.size - enemy.size < 1) {
-          // particles
           for (let i = 0; i < enemy.size; i++) {
-            const p = new Particle(bullet.x, bullet.y, Math.random() * 2, 'yellow', {
-              x: (Math.random() - 0.5) * (Math.random() * 6),
-              y: (Math.random() - 0.5) * (Math.random() * 6),
-            })
+            const p = new Particle(
+              bullet.x,
+              bullet.y,
+              Math.random() * 2,
+              randomColor(),
+              {
+                x: (Math.random() - 0.5) * (Math.random() * 6),
+                y: (Math.random() - 0.5) * (Math.random() * 6),
+              }
+            )
             this.world.addChild(p)
             this.particles.push(p)
           }
 
           enemy.hit()
+          this.sound.hit.play()
           this.bullets.splice(bIndex, 1)
           this.world.removeChild(bullet)
           if (!enemy.alive) {
             this.enemies.splice(eIndex, 1)
 
             this.world.removeChild(enemy)
+            enemy.destroy()
+
+            this.score += 100
+            document.querySelector('.score').innerHTML = this.score
           }
         }
       })
@@ -192,6 +287,8 @@ class Game {
     this.particles.forEach((particle, index) => {
       if (particle.alpha < 0) {
         this.particles.splice(index, 1)
+        this.world.removeChild(particle)
+        particle.destroy()
       } else {
         particle.update()
       }
